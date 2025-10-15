@@ -1,18 +1,30 @@
 import express from "express";
 import cors from "cors";
-import "dotenv/config"
+import "dotenv/config";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
+
 import dbConfig from "./configs/dbConfig.js";
 
-const app = express();
-const port = 3000;
+import authRoutes from "./routes/authRoutes.js";
 
-await dbConfig();
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+app.use(helmet());
 
-app.get("/",(req,res)=> res.send("Server is live"));
+app.use("/api/auth/", authRoutes);
 
-app.listen(port,()=>{
-    console.log(`Server listening at http://localhost:${port}`);
-})
+app.get("/", (req, res) => res.send("Server is live"));
+
+const startServer = async () => {
+  await dbConfig();
+  app.listen(PORT, () => {
+    console.log(`Server listening at http://localhost:${PORT}`);
+  });
+};
+startServer();
