@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import { signinSchema, signupSchema } from "../middlewares/validator.js";
 import { doHash, doHashValidation } from "../utils/hashing.js";
+import transporter from "../middlewares/sendMail.js";
 
 export const postSignup = async (req, res) => {
   const { email, password } = req.body;
@@ -71,6 +72,28 @@ export const postSignin = async (req, res) => {
     res.status(500).json({ success: false, message: `Signup Failed ${error}` });
   }
 };
+
+export const postOtpVerification = async(req,res) =>{
+  const {email} = req.body;
+  try {
+    const existingUser = await User.findOne({email});
+    if(!existingUser){
+      res.status(401).json({success:false,message:"User not exists"});
+    }
+    if(existingUser.verified){
+      res.status(401).json({success:false,message:"User already verified"});
+    }
+    const otpCode = Math.floor(Math.random()*100000).toString();
+    let message = await transporter.sendMail({
+      from:process.env.NODE_MAILER_EMAIL,
+      to:existingUser.email,
+      subject:"Verification Code",
+      html:"<h1>"+otpCode+"</h1>"
+    })
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 export const signout = async(req,res) =>{
   res.clearCookie("Authorization")
