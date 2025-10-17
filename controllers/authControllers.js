@@ -66,37 +66,60 @@ export const postSignin = async (req, res) => {
     };
     const secret = process.env.JWT_SECRET;
     const token = jwt.sign(payload, secret);
-    res.cookie("Authorization","Bearer" +token,{expires: new Date(Date.now()+8 + 60*60*1000),httpOnly:process.env.NODE_ENV ==="production"}).json({ success: true, message: "Signin Successfull" });
+    res
+      .cookie("Authorization", "Bearer" + token, {
+        expires: new Date(Date.now() + 8 + 60 * 60 * 1000),
+        httpOnly: process.env.NODE_ENV === "production",
+      })
+      .json({ success: true, message: "Signin Successfull" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: `Signup Failed ${error}` });
   }
 };
 
-export const postOtpVerification = async(req,res) =>{
-  const {email} = req.body;
+export const postOtpVerification = async (req, res) => {
+  const { email } = req.body;
   try {
-    const existingUser = await User.findOne({email});
-    if(!existingUser){
-      res.status(401).json({success:false,message:"User not exists"});
+    if (!email) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Email is required" });
     }
-    if(existingUser.verified){
-      res.status(401).json({success:false,message:"User already verified"});
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not exists" });
     }
-    const otpCode = Math.floor(Math.random()*100000).toString();
-    let message = await transporter.sendMail({
-      from:process.env.NODE_MAILER_EMAIL,
-      to:existingUser.email,
-      subject:"Verification Code",
-      html:"<h1>"+otpCode+"</h1>"
-    })
-  } catch (error) {
-    console.log(error);
-  }
-}
+    if (existingUser.verified) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User already verified" });
+    }
+    const otpCode = Math.floor(100000 + Math.random() * 900000);
 
-export const signout = async(req,res) =>{
-  res.clearCookie("Authorization")
-  .status(200)
-  .json({success:true,message:"Signout Successfull"})
-}
+    await transporter.sendMail({
+      from: process.env.NODE_MAILER_EMAIL,
+      to: existingUser.email,
+      subject: "Verification Code",
+      html: "<h1>" + otpCode + "</h1>",
+    });
+    existingUser.verificationCode = otpCode;
+    existingUser.verificationCodeValidation = Date.now();
+    await existingUser.save();
+    res
+      .status(201)
+      .json({ success: true, message: "OTP code send to your email" });
+  } catch (error) {
+     console.log(error);
+    res.status(500).json({ success: false, message: `Signup Failed ${error}` });
+  }
+};
+
+export const signout = async (req, res) => {
+  res
+    .clearCookie("Authorization")
+    .status(200)
+    .json({ success: true, message: "Signout Successfull" });
+};
