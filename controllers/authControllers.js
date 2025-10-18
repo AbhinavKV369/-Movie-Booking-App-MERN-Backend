@@ -1,6 +1,6 @@
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
-import { signinSchema, signupSchema } from "../middlewares/validator.js";
+import { acceptOtpCodeSchema, signinSchema, signupSchema } from "../middlewares/validator.js";
 import { doHash, doHashValidation } from "../utils/hashing.js";
 import transporter from "../middlewares/sendMail.js";
 
@@ -71,14 +71,14 @@ export const postSignin = async (req, res) => {
         expires: new Date(Date.now() + 8 + 60 * 60 * 1000),
         httpOnly: process.env.NODE_ENV === "production",
       })
-      .json({ success: true, message: "Signin Successfull" });
+      .json({ success: true,token, message: "Signin Successfull" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: `Signup Failed ${error}` });
   }
 };
 
-export const postOtpVerification = async (req, res) => {
+export const postOtpVerificationSend = async (req, res) => {
   const { email } = req.body;
   try {
     if (!email) {
@@ -123,3 +123,23 @@ export const signout = async (req, res) => {
     .status(200)
     .json({ success: true, message: "Signout Successfull" });
 };
+
+export const verifyVerificationCode = async(req,res) =>{
+  const {email,providedCode} = req.body;
+  try {
+    const {error,value} =  acceptOtpCodeSchema.validate({email,providedCode});
+    if(error){
+      res.status(400).json({success:false,message:error.details[0].message});
+    }
+    const codeValue = providedCode.toString();
+    const existingUser = await User.findOne({email}).select("verificationCode,verificationCodeValidation");
+    if(existingUser.verified){
+      res.status(400).json({success:true,message:"Your email already verified"});
+    }
+    if(!existingUser.verified || existingUser.verificationCodeValidation){
+      res.status(400).json({success:true,message:"Your email already verified"});
+    }
+  } catch (error) {
+    
+  }
+}

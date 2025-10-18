@@ -35,3 +35,15 @@ export const signinSchema  = Joi.object({
     )
     .message("Password must be strong"),
 });
+
+export const acceptOtpCodeSchema = Joi.object({
+  email: Joi.string()
+    .min(6)
+    .max(50)
+    .required()
+    .email({
+      tlds: { allow: ["com", "net"] },
+    })
+    .message("Email is not valid"),
+    providedCode:Joi.number()
+})
