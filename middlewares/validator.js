@@ -46,4 +46,21 @@ export const acceptOtpCodeSchema = Joi.object({
     })
     .message("Email is not valid"),
     providedCode:Joi.number()
+});
+
+export const changePasswordSchema = Joi.object({
+  newPassword:Joi.string()
+    .required()
+       .pattern(
+      new RegExp(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,32}$/
+      )
+    ),
+  oldPassword:Joi.string()
+    .required()
+       .pattern(
+      new RegExp(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,32}$/
+      )
+    ),
 })
