@@ -18,7 +18,7 @@ export const signupSchema = Joi.object({
     .message("Password must be strong"),
 });
 
-export const signinSchema  = Joi.object({
+export const signinSchema = Joi.object({
   email: Joi.string()
     .min(6)
     .max(50)
@@ -45,22 +45,22 @@ export const acceptOtpCodeSchema = Joi.object({
       tlds: { allow: ["com", "net"] },
     })
     .message("Email is not valid"),
-    providedCode:Joi.number()
+  providedCode: Joi.number(),
 });
 
 export const changePasswordSchema = Joi.object({
-  newPassword:Joi.string()
+  newPassword: Joi.string()
     .required()
-       .pattern(
+    .pattern(
       new RegExp(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,32}$/
       )
     ),
-  oldPassword:Joi.string()
+  oldPassword: Joi.string()
     .required()
-       .pattern(
+    .pattern(
       new RegExp(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,32}$/
       )
     ),
-})
+});
