@@ -164,6 +164,82 @@ export const verifyVerificationCode = async (req, res) => {
   }
 };
 
+export const postForgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+
+    await transporter.sendMail({
+      from: process.env.NODE_MAILER_EMAIL,
+      to: existingUser.email,
+      subject: "Password Reset Code",
+      html: `
+        <h2>Password Reset Request</h2>
+        <p>Use this OTP to reset your password:</p>
+        <h1>${otpCode}</h1>
+        <p>This OTP is valid for 5 minutes.</p>
+      `,
+    });
+
+    existingUser.forgotPasswordCode = otpCode;
+    existingUser.verificationCodeValidation = Date.now(); // reuse field for expiration tracking
+    await existingUser.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Password reset OTP sent to your email successfully.",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: `Failed to send OTP: ${error}` });
+  }
+};
+
+export const verifyForgotPasswordCode = async (req, res) => {
+  const { email, providedCode } = req.body;
+
+  try {
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (!existingUser.forgotPasswordCode || !existingUser.verificationCodeValidation) {
+      return res.status(400).json({ success: false, message: "OTP not generated or invalid" });
+    }
+
+    if (Date.now() - existingUser.verificationCodeValidation > 5 * 60 * 1000) {
+      return res.status(400).json({ success: false, message: "OTP expired. Please request again." });
+    }
+
+    if (String(existingUser.forgotPasswordCode) !== String(providedCode)) {
+      return res.status(400).json({ success: false, message: "Incorrect OTP" });
+    }
+
+    existingUser.forgotPasswordCode = undefined;
+    existingUser.verificationCodeValidation = undefined;
+    await existingUser.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully. You can now reset your password.",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: `Verification failed: ${error}` });
+  }
+};
+
 export const postChangePassword = async (req, res) => {
   const userId = req.user.id;
   const { oldPassword, newPassword } = req.body;
