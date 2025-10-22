@@ -192,8 +192,7 @@ export const postForgotPassword = async (req, res) => {
     });
 
     existingUser.forgotPasswordCode = otpCode;
-    existingUser.verificationCodeValidation = Date.now(); // reuse field for expiration tracking
-    await existingUser.save();
+    existingUser.verificationCodeValidation = Date.now(); 
 
     return res.status(201).json({
       success: true,
@@ -209,6 +208,12 @@ export const verifyForgotPasswordCode = async (req, res) => {
   const { email, providedCode } = req.body;
 
   try {
+    
+    const { error } = acceptOtpCodeSchema.validate({ email, providedCode });
+    if (error) {
+      return res.status(400).json({ success: false, message: error.details[0].message });
+    }
+
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
       return res.status(404).json({ success: false, message: "User not found" });
