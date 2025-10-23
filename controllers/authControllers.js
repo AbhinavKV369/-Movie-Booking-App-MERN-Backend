@@ -224,7 +224,7 @@ export const verifyForgotPasswordCode = async (req, res) => {
     }
 
     if (Date.now() - existingUser.verificationCodeValidation > 5 * 60 * 1000) {
-      return res.status(400).json({ success: false, message: "OTP expired. Please request again." });
+      return res.status(400).json({ success: false, message: "OTP expired, Please request again" });
     }
 
     if (String(existingUser.forgotPasswordCode) !== String(providedCode)) {
