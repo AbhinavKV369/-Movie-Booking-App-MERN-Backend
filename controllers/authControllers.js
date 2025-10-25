@@ -1,4 +1,4 @@
-import User from "../models/User.js";
+import User from "../models/user";
 import jwt from "jsonwebtoken";
 import {
   acceptOtpCodeSchema,

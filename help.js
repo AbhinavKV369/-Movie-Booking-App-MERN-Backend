@@ -22,85 +22,16 @@ const genreSchema = new mongoose.Schema({
   name: String,
 });
 
-const movieSchema = new mongoose.Schema({
-  id: {
-    type: Number,
-    required: true,
-    unique: true,
-  },
-  title: {
-    type: String,
-    required: true,
-  },
-  overview: String,
-  poster_path: String,
-  backdrop_path: String,
-  genres: [genreSchema],
-  casts: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Cast",
-    },
-  ],
-  release_date: Date,
-  original_language: String,
-  tagline: String,
-  vote_average: Number,
-  vote_count: Number,
-  runtime: Number,
-});
 
 // =========================
 // 3. SHOWTIME SCHEMA
 // =========================
-const showTimeSchema = new mongoose.Schema({
-  movie: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Movie",
-    required: true,
-  },
-  showDateTime: {
-    type: Date,
-    required: true,
-  },
-  showPrice: {
-    type: Number,
-    required: true,
-  },
-  occupiedSeats: {
-    type: Map,
-    of: String, // stores user IDs (or booking IDs)
-    default: {},
-  },
-});
+
 
 // =========================
 // 4. BOOKING SCHEMA
 // =========================
-const bookingSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User", // Make sure User model exists
-    required: true,
-  },
-  show: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "ShowTime",
-    required: true,
-  },
-  bookedSeats: {
-    type: [String],
-    required: true,
-  },
-  amount: {
-    type: Number,
-    required: true,
-  },
-  isPaid: {
-    type: Boolean,
-    default: false,
-  },
-});
+
 
 // =========================
 // 5. DASHBOARD SCHEMA (optional summary)
